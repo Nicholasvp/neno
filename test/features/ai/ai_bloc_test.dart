@@ -39,10 +39,11 @@ void main() {
     when(() => movRepo.watch()).thenAnswer((_) => movementsController.stream);
     when(() => aiRepo.isModelLoaded).thenReturn(false);
     when(() => aiRepo.loadedModelName).thenReturn(null);
-    when(() => aiRepo.askWithRules(
+    when(() => aiRepo.askStream(
           profile: any(named: 'profile'),
           recentMovements: any(named: 'recentMovements'),
-        )).thenReturn('Conselho teste');
+          userMessage: any(named: 'userMessage'),
+        )).thenAnswer((_) => Stream.value('Conselho teste'));
   });
 
   tearDown(() async {

@@ -61,35 +61,21 @@ class AiBloc extends Bloc<AiEvent, AiState> {
     ));
 
     try {
-      if (_aiRepository.isModelLoaded) {
-        emit(state.copyWith(status: AiStatus.streaming));
-        final updatedHistory = [...newHistory, ChatTurn(role: 'assistant', content: '')];
-        await for (final partial in _aiRepository.askStream(
-          profile: _profile!,
-          recentMovements: _movements,
-          userMessage: userMessage,
-        )) {
-          updatedHistory[updatedHistory.length - 1] =
-              ChatTurn(role: 'assistant', content: partial);
-          emit(state.copyWith(
-            status: AiStatus.streaming,
-            history: List.of(updatedHistory),
-          ));
-        }
-        emit(state.copyWith(status: AiStatus.idle));
-      } else {
-        final advice = _aiRepository.askWithRules(
-          profile: _profile!,
-          recentMovements: _movements,
-        );
+      emit(state.copyWith(status: AiStatus.streaming));
+      final updatedHistory = [...newHistory, ChatTurn(role: 'assistant', content: '')];
+      await for (final partial in _aiRepository.askStream(
+        profile: _profile!,
+        recentMovements: _movements,
+        userMessage: userMessage,
+      )) {
+        updatedHistory[updatedHistory.length - 1] =
+            ChatTurn(role: 'assistant', content: partial);
         emit(state.copyWith(
-          status: AiStatus.idle,
-          history: [
-            ...newHistory,
-            ChatTurn(role: 'assistant', content: advice),
-          ],
+          status: AiStatus.streaming,
+          history: List.of(updatedHistory),
         ));
       }
+      emit(state.copyWith(status: AiStatus.idle));
     } catch (e) {
       emit(state.copyWith(status: AiStatus.error, error: e.toString()));
     }

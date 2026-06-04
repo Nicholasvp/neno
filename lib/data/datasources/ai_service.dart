@@ -10,8 +10,8 @@ abstract class AiService {
   String? get loadedModelName;
   Future<bool> loadModel({String? modelPath, String? modelId});
   Future<void> unloadModel();
-  Stream<String> generateStream(String prompt);
-  Future<String> generate(String prompt);
+  Stream<String> generateStream(List<AiMessage> messages);
+  Future<String> generate(List<AiMessage> messages);
 }
 
 class StubAiService implements AiService {
@@ -28,10 +28,11 @@ class StubAiService implements AiService {
   Future<void> unloadModel() async {}
 
   @override
-  Stream<String> generateStream(String prompt) async* {
+  Stream<String> generateStream(List<AiMessage> messages) async* {
     yield 'IA local indisponível.';
   }
 
   @override
-  Future<String> generate(String prompt) async => 'IA local indisponível.';
+  Future<String> generate(List<AiMessage> messages) async =>
+      'IA local indisponível.';
 }

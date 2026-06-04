@@ -19,11 +19,6 @@ abstract class AiRepository {
     required PregnancyProfile profile,
     required List<Movement> recentMovements,
   });
-  String buildContextPrompt({
-    required PregnancyProfile profile,
-    required List<Movement> recentMovements,
-    String? userMessage,
-  });
 }
 
 class AiRepositoryImpl implements AiRepository {
@@ -52,13 +47,8 @@ class AiRepositoryImpl implements AiRepository {
     required List<Movement> recentMovements,
     String? userMessage,
   }) async* {
-    final prompt = buildContextPrompt(
-      profile: profile,
-      recentMovements: recentMovements,
-      userMessage: userMessage,
-    );
     if (!_aiService.isLoaded) {
-      yield _advisor.getAdvice(
+      final advice = _advisor.getAdvice(
         AdvisorContext(
           profile: profile,
           recentMovements: recentMovements,
@@ -66,15 +56,74 @@ class AiRepositoryImpl implements AiRepository {
           averageDailyMovements: _averageDaily(recentMovements),
         ),
       );
+      if (userMessage != null && userMessage.trim().isNotEmpty) {
+        yield 'Sou uma assistente especializada em gestação e maternidade. $advice';
+      } else {
+        yield advice;
+      }
       return;
     }
-    final buffer = StringBuffer();
-    await for (final token in _aiService.generateStream(prompt)) {
-      buffer
-        ..clear()
-        ..write(token);
+    final messages = _buildMessages(
+      profile: profile,
+      recentMovements: recentMovements,
+      userMessage: userMessage,
+    );
+    await for (final token in _aiService.generateStream(messages)) {
       yield token;
     }
+  }
+
+  List<AiMessage> _buildMessages({
+    required PregnancyProfile profile,
+    required List<Movement> recentMovements,
+    String? userMessage,
+  }) {
+    final last24h = _countLast24h(recentMovements);
+    final avg = _averageDaily(recentMovements);
+    final movementsText = recentMovements.take(20).map((m) {
+      return '- ${m.timestamp.toIso8601String()}';
+    }).join('\n');
+
+    final contextInfo = StringBuffer()
+      ..writeln('Contexto da gestante:')
+      ..writeln('- Semana de gestação: ${profile.currentWeek} + ${profile.currentWeekDays} dias')
+      ..writeln('- Trimestre: ${profile.trimester}')
+      ..writeln('- DPP: ${profile.dueDate.toIso8601String().split("T").first}')
+      ..writeln('- Movimentos registrados nas últimas 24h: $last24h')
+      ..writeln('- Média diária recente: ${avg.toStringAsFixed(1)}')
+      ..writeln('- Últimos movimentos:')
+      ..writeln(movementsText.isEmpty ? '- Nenhum registrado' : movementsText);
+
+    final systemMessage = StringBuffer()
+      ..writeln('Você é um assistente virtual EXCLUSIVO para gestação e maternidade.')
+      ..writeln('')
+      ..writeln('REGRAS ABSOLUTAS:')
+      ..writeln('1. Responda SOMENTE sobre gestação, parto, amamentação, cuidados com o bebê, saúde da gestante,')
+      ..writeln('   desenvolvimento fetal, alimentação na gestação, exames pré-natal e puerpério.')
+      ..writeln('2. Se o usuário perguntar sobre QUALQUER OUTRO assunto (política, tecnologia, esportes,')
+      ..writeln('   matemática, entretenimento, finanças, notícias, etc.), responda APENAS:')
+      ..writeln('   "Sou uma assistente especializada em gestação e maternidade. Posso ajudar apenas com')
+      ..writeln('   temas relacionados à gravidez, cuidados com o bebê e saúde da gestante."')
+      ..writeln('   NÃO responda à pergunta off-topic de nenhuma forma.')
+      ..writeln('3. NÃO substitua orientação médica profissional. Recomende consultar um obstetra quando necessário.')
+      ..writeln('4. Responda em português do Brasil, de forma acolhedora, empática e breve (até 4 frases).')
+      ..writeln('')
+      ..write(contextInfo.toString().trim());
+
+    final messages = <AiMessage>[
+      AiMessage(role: 'system', content: systemMessage.toString()),
+    ];
+
+    if (userMessage != null && userMessage.trim().isNotEmpty) {
+      messages.add(AiMessage(role: 'user', content: userMessage.trim()));
+    } else {
+      messages.add(const AiMessage(
+        role: 'user',
+        content: 'Dê um conselho curto e personalizado para este momento da gestação.',
+      ));
+    }
+
+    return messages;
   }
 
   @override
@@ -90,46 +139,6 @@ class AiRepositoryImpl implements AiRepository {
         averageDailyMovements: _averageDaily(recentMovements),
       ),
     );
-  }
-
-  @override
-  String buildContextPrompt({
-    required PregnancyProfile profile,
-    required List<Movement> recentMovements,
-    String? userMessage,
-  }) {
-    final last24h = _countLast24h(recentMovements);
-    final avg = _averageDaily(recentMovements);
-    final movementsText = recentMovements.take(20).map((m) {
-      return '- ${m.timestamp.toIso8601String()}';
-    }).join('\n');
-
-    final sb = StringBuffer()
-      ..writeln('Você é um assistente gentil e informativo para gestantes.')
-      ..writeln('Responda em português do Brasil, de forma acolhedora e breve (até 4 frases).')
-      ..writeln('NÃO substitua orientação médica profissional.')
-      ..writeln('')
-      ..writeln('Contexto:')
-      ..writeln('- Semana de gestação: ${profile.currentWeek} + ${profile.currentWeekDays} dias')
-      ..writeln('- Trimestre: ${profile.trimester}')
-      ..writeln('- DPP: ${profile.dueDate.toIso8601String().split("T").first}')
-      ..writeln('- Movimentos registrados nas últimas 24h: $last24h')
-      ..writeln('- Média diária recente: ${avg.toStringAsFixed(1)}')
-      ..writeln('- Últimos movimentos:')
-      ..writeln(movementsText.isEmpty ? '- Nenhum registrado' : movementsText)
-      ..writeln('');
-
-    if (userMessage != null && userMessage.trim().isNotEmpty) {
-      sb
-        ..writeln('Pergunta da gestante:')
-        ..writeln(userMessage)
-        ..writeln('')
-        ..writeln('Responda de forma acolhedora e informativa.');
-    } else {
-      sb.writeln('Dê um conselho curto e personalizado para este momento da gestação.');
-    }
-
-    return sb.toString();
   }
 
   int _countLast24h(List<Movement> movements) {
