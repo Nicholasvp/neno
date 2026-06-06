@@ -28,7 +28,7 @@ class _SplashPageState extends State<SplashPage> {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      backgroundColor: Color(0xFFFAF6ED),
+      backgroundColor: Color(0xFFFFFFFF),
       body: Center(
         child: Image(
           image: AssetImage('assets/neno_logo.png'),
