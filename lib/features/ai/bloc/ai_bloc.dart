@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:developer' as dev;
 
 import 'package:bloc/bloc.dart';
 
+import '../../../data/datasources/ai_service.dart';
 import '../../../data/models/movement.dart';
 import '../../../data/models/pregnancy_profile.dart';
 import '../../../data/repositories/ai_repository.dart';
@@ -61,22 +63,31 @@ class AiBloc extends Bloc<AiEvent, AiState> {
     ));
 
     try {
+      dev.log('AiBloc: iniciando stream do assistente');
       emit(state.copyWith(status: AiStatus.streaming));
       final updatedHistory = [...newHistory, ChatTurn(role: 'assistant', content: '')];
+      var accumulated = '';
+      final historyForAi = newHistory
+          .map((t) => AiMessage(role: t.role, content: t.content))
+          .toList();
       await for (final partial in _aiRepository.askStream(
         profile: _profile!,
         recentMovements: _movements,
         userMessage: userMessage,
+        history: historyForAi,
       )) {
+        accumulated += partial;
         updatedHistory[updatedHistory.length - 1] =
-            ChatTurn(role: 'assistant', content: partial);
+            ChatTurn(role: 'assistant', content: accumulated);
         emit(state.copyWith(
           status: AiStatus.streaming,
           history: List.of(updatedHistory),
         ));
       }
+      dev.log('AiBloc: stream concluído | tamanho: ${accumulated.length}');
       emit(state.copyWith(status: AiStatus.idle));
     } catch (e) {
+      dev.log('AiBloc: erro - $e');
       emit(state.copyWith(status: AiStatus.error, error: e.toString()));
     }
   }

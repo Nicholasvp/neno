@@ -7,7 +7,7 @@ import '../data/repositories/movement_repository.dart';
 import '../data/repositories/profile_repository.dart';
 import '../features/ai/bloc/ai_bloc.dart';
 import '../features/analytics/bloc/analytics_bloc.dart';
-import '../features/home/view/home_page.dart';
+import 'splash/splash_page.dart';
 import '../features/movements/bloc/movements_bloc.dart';
 import '../features/profile/bloc/profile_bloc.dart';
 import 'theme/app_theme.dart';
@@ -40,7 +40,7 @@ class NenoApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light(),
         localizationsDelegates: const [],
-        home: const HomePage(),
+        home: const SplashPage(),
       ),
     );
   }

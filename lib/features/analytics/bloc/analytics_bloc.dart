@@ -22,15 +22,16 @@ class AnalyticsBloc extends Bloc<AnalyticsEvent, AnalyticsState> {
     AnalyticsSubscribed event,
     Emitter<AnalyticsState> emit,
   ) async {
-    emit(state.copyWith(status: AnalyticsStatus.loading));
     await _subscription?.cancel();
+    final current = _repository.getAll();
+    _emitAnalytics(emit, current);
     _subscription = _repository.watch().listen(
           (list) => add(AnalyticsUpdated(list)),
         );
   }
 
-  void _onUpdated(AnalyticsUpdated event, Emitter<AnalyticsState> emit) {
-    if (event.movements.isEmpty) {
+  void _emitAnalytics(Emitter<AnalyticsState> emit, List<Movement> movements) {
+    if (movements.isEmpty) {
       emit(state.copyWith(
         status: AnalyticsStatus.empty,
         movements: const [],
@@ -44,13 +45,17 @@ class AnalyticsBloc extends Bloc<AnalyticsEvent, AnalyticsState> {
     }
     emit(state.copyWith(
       status: AnalyticsStatus.loaded,
-      movements: event.movements,
-      last7Days: _computeLast7Days(event.movements),
-      hourDistribution: _computeHourDistribution(event.movements),
-      averageDaily: _computeAverageDaily(event.movements),
-      averageIntervalMinutes: _computeAverageInterval(event.movements),
-      streakDays: _computeStreak(event.movements),
+      movements: movements,
+      last7Days: _computeLast7Days(movements),
+      hourDistribution: _computeHourDistribution(movements),
+      averageDaily: _computeAverageDaily(movements),
+      averageIntervalMinutes: _computeAverageInterval(movements),
+      streakDays: _computeStreak(movements),
     ));
+  }
+
+  void _onUpdated(AnalyticsUpdated event, Emitter<AnalyticsState> emit) {
+    _emitAnalytics(emit, event.movements);
   }
 
   List<DayBucket> _computeLast7Days(List<Movement> movements) {

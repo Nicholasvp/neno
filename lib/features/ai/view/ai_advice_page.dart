@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:moon_design/moon_design.dart';
 
 import '../../../app/theme/app_theme.dart';
 import '../bloc/ai_bloc.dart';
@@ -50,52 +51,71 @@ class _AiAdvicePageState extends State<AiAdvicePage> {
     _scrollToBottom();
   }
 
+  void _dismissKeyboard() {
+    FocusScope.of(context).unfocus();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final keyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
     return Scaffold(
-      appBar: AppBar(title: const Text('Conselhos')),
-      body: Column(
-        children: [
-          const _AdvisorBanner(),
-          Expanded(
-            child: BlocConsumer<AiBloc, AiState>(
-              listenWhen: (a, b) => a.history.length != b.history.length || a.status != b.status,
-              listener: (_, __) => _scrollToBottom(),
-              builder: (context, state) {
-                if (state.history.isEmpty) {
-                  return _EmptyChat(
-                    isLoading: state.status == AiStatus.thinking || state.status == AiStatus.streaming,
-                    onSuggest: _quickAdvice,
-                  );
-                }
-                return ListView.builder(
-                  controller: _scrollCtrl,
-                  padding: const EdgeInsets.all(16),
-                  itemCount: state.history.length,
-                  itemBuilder: (context, i) {
-                    final turn = state.history[i];
-                    return ChatBubble(
-                      role: turn.role,
-                      content: turn.content,
-                      isStreaming: state.status == AiStatus.streaming && i == state.history.length - 1,
-                    );
-                  },
-                );
-              },
+      appBar: AppBar(
+        title: const Text('Conselhos'),
+        actions: [
+          if (keyboardOpen)
+            IconButton(
+              tooltip: 'Minimizar teclado',
+              icon: const Icon(Icons.keyboard_hide),
+              onPressed: _dismissKeyboard,
             ),
-          ),
-          if (context.watch<AiBloc>().state.status == AiStatus.error)
-            Container(
-              color: Colors.red.shade50,
-              padding: const EdgeInsets.all(8),
-              child: Text(
-                context.read<AiBloc>().state.error ?? '',
-                style: const TextStyle(color: Colors.red),
-                textAlign: TextAlign.center,
+        ],
+      ),
+      body: GestureDetector(
+        onTap: _dismissKeyboard,
+        behavior: HitTestBehavior.translucent,
+        child: Column(
+          children: [
+            const _AdvisorBanner(),
+            Expanded(
+              child: BlocConsumer<AiBloc, AiState>(
+                listenWhen: (a, b) => a.history.length != b.history.length || a.status != b.status,
+                listener: (_, __) => _scrollToBottom(),
+                builder: (context, state) {
+                  if (state.history.isEmpty) {
+                    return _EmptyChat(
+                      isLoading: state.status == AiStatus.thinking || state.status == AiStatus.streaming,
+                      onSuggest: _quickAdvice,
+                    );
+                  }
+                  return ListView.builder(
+                    controller: _scrollCtrl,
+                    padding: const EdgeInsets.all(16),
+                    itemCount: state.history.length,
+                    itemBuilder: (context, i) {
+                      final turn = state.history[i];
+                      return ChatBubble(
+                        role: turn.role,
+                        content: turn.content,
+                        isStreaming: state.status == AiStatus.streaming && i == state.history.length - 1,
+                      );
+                    },
+                  );
+                },
               ),
             ),
-          _Composer(controller: _ctrl, onSend: _send, onSuggest: _quickAdvice),
-        ],
+            if (context.watch<AiBloc>().state.status == AiStatus.error)
+              Container(
+                color: Colors.red.shade50,
+                padding: const EdgeInsets.all(8),
+                child: Text(
+                  context.read<AiBloc>().state.error ?? '',
+                  style: const TextStyle(color: Colors.red),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            _Composer(controller: _ctrl, onSend: _send, onSuggest: _quickAdvice),
+          ],
+        ),
       ),
     );
   }
@@ -132,14 +152,14 @@ class _AdvisorBanner extends StatelessWidget {
           width: double.infinity,
           color: AppTheme.accent.withValues(alpha: 0.3),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: const Row(
+          child: Row(
             children: [
-              Icon(Icons.tips_and_updates, color: AppTheme.primaryDark, size: 18),
-              SizedBox(width: 8),
-              Expanded(
+              const Icon(Icons.tips_and_updates, color: AppTheme.textSecondary, size: 18),
+              const SizedBox(width: 8),
+              const Expanded(
                 child: Text(
                   'Conselhos personalizados baseados na sua semana e movimentos',
-                  style: TextStyle(color: AppTheme.primaryDark, fontSize: 12),
+                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
                 ),
               ),
             ],
@@ -168,28 +188,26 @@ class _Composer extends StatelessWidget {
         ),
         child: Row(
           children: [
-            IconButton(
-              icon: const Icon(Icons.auto_awesome, color: AppTheme.primary),
-              tooltip: 'Conselho automático',
-              onPressed: onSuggest,
+            MoonTextButton(
+              onTap: onSuggest,
+              leading: Icon(Icons.auto_awesome, color: AppTheme.primary, size: 20),
             ),
+            const SizedBox(width: 4),
             Expanded(
-              child: TextField(
+              child: MoonTextInput(
                 controller: controller,
                 minLines: 1,
                 maxLines: 4,
+                hintText: 'Pergunte algo...',
+                keyboardType: TextInputType.text,
                 textInputAction: TextInputAction.send,
                 onSubmitted: (_) => onSend(),
-                decoration: const InputDecoration(
-                  hintText: 'Pergunte algo...',
-                  border: OutlineInputBorder(borderSide: BorderSide.none),
-                  filled: false,
-                ),
               ),
             ),
-            IconButton(
-              icon: const Icon(Icons.send, color: AppTheme.primary),
-              onPressed: onSend,
+            const SizedBox(width: 4),
+            MoonTextButton(
+              onTap: onSend,
+              leading: Icon(Icons.send, color: AppTheme.primary, size: 20),
             ),
           ],
         ),
@@ -211,7 +229,7 @@ class _EmptyChat extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.psychology_alt, size: 64, color: AppTheme.accent),
+            Icon(Icons.psychology_alt, size: 64, color: AppTheme.accent),
             const SizedBox(height: 16),
             Text(
               'Olá! Sou sua assistente de gestação.',
@@ -219,18 +237,18 @@ class _EmptyChat extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Posso te dar conselhos baseados na sua semana de gestação e nos movimentos registrados.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: AppTheme.textSecondary),
+              style: const TextStyle(color: AppTheme.textSecondary),
             ),
             const SizedBox(height: 20),
             if (isLoading)
-              const CircularProgressIndicator()
+              const MoonCircularLoader()
             else
-              FilledButton.icon(
-                onPressed: onSuggest,
-                icon: const Icon(Icons.auto_awesome),
+              MoonFilledButton(
+                onTap: onSuggest,
+                leading: const Icon(Icons.auto_awesome),
                 label: const Text('Dar um conselho agora'),
               ),
           ],

@@ -15,88 +15,84 @@ class AdvisorContext {
   final double averageDailyMovements;
 }
 
+class AdvisorInsights {
+  const AdvisorInsights({
+    required this.trimesterPhase,
+    required this.movementAssessment,
+    required this.generalTip,
+    this.lastMovementSummary,
+  });
+
+  final String trimesterPhase;
+  final String movementAssessment;
+  final String generalTip;
+  final String? lastMovementSummary;
+}
+
 class RuleBasedAdvisor {
   const RuleBasedAdvisor();
 
-  String getAdvice(AdvisorContext context) {
+  AdvisorInsights extractInsights(AdvisorContext context) {
     final week = context.profile.currentWeek;
-    final trimester = context.profile.trimester;
-    final last24h = context.movementsLast24h;
-    final avg = context.averageDailyMovements;
-
-    final parts = <String>[];
-
-    parts.add(
-      'Você está na semana $week de gestação (${context.profile.currentWeekDays} dias) — $trimester. ',
+    return AdvisorInsights(
+      trimesterPhase: _trimesterPhase(week),
+      movementAssessment: _movementAssessment(
+        week: week,
+        last24h: context.movementsLast24h,
+        avg: context.averageDailyMovements,
+      ),
+      generalTip: _generalTip(week),
+      lastMovementSummary: _lastMovementSummary(context),
     );
+  }
 
+  String _trimesterPhase(int week) {
     if (week < 13) {
-      parts.add(
-        'No 1º trimestre, os movimentos do bebê ainda são sutis e podem não ser percebidos com regularidade. ',
-      );
-    } else if (week < 20) {
-      parts.add(
-        'Entre a 18ª e 20ª semana geralmente é quando os primeiros movimentos são sentidos. ',
-      );
-    } else if (week < 28) {
-      parts.add(
-        'No 2º trimestre, é normal sentir os movimentos se intensificarem gradualmente. ',
-      );
-    } else if (week < 37) {
-      parts.add(
-        'No 3º trimestre, é recomendado contar os movimentos: o ideal é sentir pelo menos 10 movimentos em 2 horas após uma refeição. ',
-      );
-    } else {
-      parts.add(
-        'Próximo ao nascimento, os movimentos podem mudar de padrão — o espaço está menor, então chutes e solavancos podem parecer diferentes. ',
-      );
+      return '1º trimestre — movimentos fetais ainda sutis e irregulares; não é esperado padrão definido.';
     }
-
-    if (week >= 28) {
-      if (last24h >= 10) {
-        parts.add(
-          'Nas últimas 24h você registrou $last24h movimentos — um ótimo sinal de vitalidade. Continue monitorando. ',
-        );
-      } else if (last24h >= 6) {
-        parts.add(
-          'Nas últimas 24h você registrou $last24h movimentos. Está dentro do esperado, mas fique atenta. ',
-        );
-      } else if (last24h > 0) {
-        parts.add(
-          'Apenas $last24h movimentos nas últimas 24h. Tente deitar-se do lado esquerdo após uma refeição e contar por 2 horas. ',
-        );
-      } else {
-        parts.add(
-          '⚠️ Nenhum movimento registrado nas últimas 24h. Se você está na $weekª semana, procure atendimento médico para avaliação. ',
-        );
-      }
-
-      if (avg > 0 && last24h < avg * 0.5) {
-        parts.add(
-          'Sua média diária é ${avg.toStringAsFixed(1)} movimentos e hoje está bem abaixo — vale repetir a contagem em ambiente calmo. ',
-        );
-      }
-    } else {
-      parts.add(
-        'Nas últimas 24h: $last24h registros. A regularidade ainda não é prioridade antes da 28ª semana. ',
-      );
+    if (week < 20) {
+      return 'Início da percepção de movimentos (geralmente entre 18ª e 20ª semana).';
     }
-
-    if (context.recentMovements.isNotEmpty) {
-      final last = context.recentMovements.first;
-      final timeSince = DateTime.now().difference(last.timestamp);
-      if (timeSince.inHours < 1) {
-        parts.add('Seu último movimento foi há menos de 1 hora. ');
-      } else if (timeSince.inHours < 24) {
-        parts.add('Seu último movimento foi há ${timeSince.inHours}h. ');
-      } else {
-        parts.add('Seu último movimento foi há mais de 24h. ');
-      }
+    if (week < 28) {
+      return '2º trimestre — movimentos se intensificam gradualmente; sem necessidade de contagem rígida.';
     }
+    if (week < 37) {
+      return '3º trimestre — contagem de movimentos recomendada (meta: 10 movimentos em 2h após refeição).';
+    }
+    return 'Final da gestação — padrão de movimentos pode mudar pelo menor espaço uterino.';
+  }
 
-    parts.add(_generalTip(week));
+  String _movementAssessment({
+    required int week,
+    required int last24h,
+    required double avg,
+  }) {
+    if (week < 28) {
+      return 'Antes da 28ª semana a regularidade não é o foco (last24h=$last24h).';
+    }
+    if (last24h == 0) {
+      return '⚠️ Nenhum movimento nas últimas 24h na $weekª semana — avaliar com obstetra.';
+    }
+    if (last24h >= 10) {
+      return 'Movimentos adequados (last24h=$last24h).';
+    }
+    if (last24h >= 6) {
+      return 'Movimentos dentro do esperado, mas atenção (last24h=$last24h).';
+    }
+    final belowAvg = avg > 0 && last24h < avg * 0.5;
+    if (belowAvg) {
+      return 'Movimentos abaixo da média recente (last24h=$last24h, média=${avg.toStringAsFixed(1)}).';
+    }
+    return 'Movimentos reduzidos (last24h=$last24h).';
+  }
 
-    return parts.join();
+  String? _lastMovementSummary(AdvisorContext context) {
+    if (context.recentMovements.isEmpty) return null;
+    final last = context.recentMovements.first;
+    final hours = DateTime.now().difference(last.timestamp).inHours;
+    if (hours < 1) return 'há menos de 1 hora';
+    if (hours < 24) return 'há ${hours}h';
+    return 'há mais de 24h';
   }
 
   String _generalTip(int week) {

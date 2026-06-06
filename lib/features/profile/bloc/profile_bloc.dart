@@ -17,7 +17,6 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   final ProfileRepository _repository;
 
   void _onLoaded(ProfileLoaded event, Emitter<ProfileState> emit) {
-    emit(state.copyWith(status: ProfileStatus.loading));
     final profile = _repository.get();
     if (profile == null) {
       emit(state.copyWith(status: ProfileStatus.empty, clearProfile: true));

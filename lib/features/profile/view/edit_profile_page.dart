@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:moon_design/moon_design.dart';
 
 import '../../../app/theme/app_theme.dart';
 import '../../../data/models/pregnancy_profile.dart';
@@ -18,7 +19,7 @@ class EditProfilePage extends StatefulWidget {
 class _EditProfilePageState extends State<EditProfilePage> {
   late DateTime _dueDate;
   late TextEditingController _nameCtrl;
-  bool _useDum = false;
+  int _selectedMode = 0;
   late DateTime _dum;
 
   @override
@@ -87,12 +88,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          TextField(
+          MoonTextInput(
             controller: _nameCtrl,
-            decoration: const InputDecoration(
-              labelText: 'Nome (opcional)',
-              prefixIcon: Icon(Icons.person),
-            ),
+            hintText: 'Nome (opcional)',
+            leading: const Icon(Icons.person),
           ),
           const SizedBox(height: 24),
           const Text(
@@ -100,16 +99,22 @@ class _EditProfilePageState extends State<EditProfilePage> {
             style: TextStyle(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
-          SegmentedButton<bool>(
-            segments: const [
-              ButtonSegment(value: false, label: Text('DPP'), icon: Icon(Icons.cake)),
-              ButtonSegment(value: true, label: Text('DUM'), icon: Icon(Icons.calendar_today)),
+          MoonSegmentedControl(
+            initialIndex: _selectedMode,
+            onSegmentChanged: (i) => setState(() => _selectedMode = i),
+            segments: [
+              Segment(
+                label: const Text('DPP'),
+                leading: const Icon(Icons.cake),
+              ),
+              Segment(
+                label: const Text('DUM'),
+                leading: const Icon(Icons.calendar_today),
+              ),
             ],
-            selected: {_useDum},
-            onSelectionChanged: (s) => setState(() => _useDum = s.first),
           ),
           const SizedBox(height: 16),
-          if (!_useDum)
+          if (_selectedMode == 0)
             _DatePicker(
               icon: Icons.cake,
               label: 'Data Provável do Parto (DPP)',
@@ -130,14 +135,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
               padding: const EdgeInsets.all(12),
               child: Row(
                 children: [
-                  const Icon(Icons.info_outline, color: AppTheme.primaryDark),
+                  const Icon(Icons.info_outline, color: AppTheme.textSecondary),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      _useDum
-                          ? 'Calculamos sua DPP adicionando 280 dias à DUM.'
-                          : 'Calculamos sua DUM subtraindo 280 dias da DPP.',
-                      style: const TextStyle(fontSize: 12, color: AppTheme.primaryDark),
+                      _selectedMode == 0
+                          ? 'Calculamos sua DUM subtraindo 280 dias da DPP.'
+                          : 'Calculamos sua DPP adicionando 280 dias à DUM.',
+                      style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
                     ),
                   ),
                 ],
@@ -145,9 +150,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
             ),
           ),
           const SizedBox(height: 24),
-          FilledButton(
-            onPressed: _save,
-            child: const Text('Salvar'),
+          MoonFilledButton(
+            onTap: _save,
+            isFullWidth: true,
+            label: const Text('Salvar'),
           ),
         ],
       ),
@@ -170,32 +176,35 @@ class _DatePicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border.all(color: Colors.grey.shade300),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, color: AppTheme.primary),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(label, style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
-                  const SizedBox(height: 2),
-                  Text(value, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
-                ],
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppTheme.white,
+            border: Border.all(color: AppTheme.borderColor),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            children: [
+              Icon(icon, color: AppTheme.primary),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(label, style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                    const SizedBox(height: 2),
+                    Text(value, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
+                  ],
+                ),
               ),
-            ),
-            const Icon(Icons.edit, color: AppTheme.textSecondary),
-          ],
+              const Icon(Icons.edit, color: AppTheme.textSecondary),
+            ],
+          ),
         ),
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:moon_design/moon_design.dart';
 
 import '../../../app/theme/app_theme.dart';
 import '../bloc/movements_bloc.dart';
@@ -16,26 +17,20 @@ class MovementsPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Movimentos')),
       body: BlocBuilder<MovementsBloc, MovementsState>(
-        builder: (context, state) {
-          if (state.status == MovementsStatus.loading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          return _Body(state: state);
-        },
+        builder: (context, state) => _Body(state: state),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _onAdd(context),
-        icon: const Icon(Icons.add),
+      floatingActionButton: MoonFilledButton(
+        onTap: () => _onAdd(context),
+        leading: const Icon(Icons.add, size: 20),
         label: const Text('Registrar movimento'),
       ),
     );
   }
 
   void _onAdd(BuildContext context) {
-    showModalBottomSheet(
+    showMoonModalBottomSheet(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      isExpanded: false,
       builder: (_) => BlocProvider.value(
         value: context.read<MovementsBloc>(),
         child: const AddMovementSheet(),
@@ -107,7 +102,7 @@ class _SummaryRow extends StatelessWidget {
             title: 'Últimas 24h',
             value: state.countLast24h.toString(),
             icon: Icons.access_time,
-            color: Colors.deepPurple,
+            color: AppTheme.borderColor,
           ),
         ),
       ],
@@ -142,7 +137,7 @@ class _SummaryCard extends StatelessWidget {
                 const SizedBox(width: 6),
                 Text(
                   title,
-                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                  style: TextStyle(color: AppTheme.primary, fontSize: 13),
                 ),
               ],
             ),
@@ -169,17 +164,17 @@ class _EmptyState extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.favorite, size: 80, color: AppTheme.accent),
+            Icon(Icons.favorite, size: 80, color: AppTheme.accent),
             const SizedBox(height: 16),
             Text(
               'Nenhum movimento ainda',
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Toque em "Registrar movimento" para começar a acompanhar.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: AppTheme.textSecondary),
+              style: const TextStyle(color: AppTheme.textSecondary),
             ),
           ],
         ),

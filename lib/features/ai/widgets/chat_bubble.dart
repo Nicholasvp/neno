@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:moon_design/moon_design.dart';
 
 import '../../../app/theme/app_theme.dart';
 
@@ -41,22 +42,17 @@ class ChatBubble extends StatelessWidget {
               child: Text(
                 content.isEmpty && isStreaming ? '...' : content,
                 style: TextStyle(
-                  color: isUser ? Colors.white : AppTheme.textPrimary,
+                  color: isUser ? Colors.white : AppTheme.primaryDark,
                   height: 1.35,
                 ),
               ),
             ),
             if (isStreaming) ...[
               const SizedBox(width: 6),
-              SizedBox(
+              const SizedBox(
                 width: 8,
                 height: 8,
-                child: CircularProgressIndicator(
-                  strokeWidth: 1.5,
-                  valueColor: AlwaysStoppedAnimation(
-                    isUser ? Colors.white : AppTheme.primary,
-                  ),
-                ),
+                child: MoonCircularLoader(strokeWidth: 1.5, color: Colors.white),
               ),
             ],
           ],

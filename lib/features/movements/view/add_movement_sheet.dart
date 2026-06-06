@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:moon_design/moon_design.dart';
 
 import '../../../app/theme/app_theme.dart';
 import '../bloc/movements_bloc.dart';
@@ -46,92 +47,99 @@ class _AddMovementSheetState extends State<AddMovementSheet> {
     final dateLabel = DateFormat('dd/MM/yyyy').format(_date);
     final timeLabel = _time.format(context);
 
-    return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
-      child: Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    return Material(
+      color: Colors.transparent,
+      child: Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
         ),
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 12),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(2),
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppTheme.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+          child: SingleChildScrollView(
+            child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
               ),
-            ),
-            const Text(
-              'Registrar movimento',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-                  child: _PickerField(
-                    icon: Icons.calendar_today,
-                    label: 'Data',
-                    value: dateLabel,
-                    onTap: _pickDate,
+              const Text(
+                'Registrar movimento',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: _PickerField(
+                      icon: Icons.calendar_today,
+                      label: 'Data',
+                      value: dateLabel,
+                      onTap: _pickDate,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _PickerField(
-                    icon: Icons.access_time,
-                    label: 'Horário',
-                    value: timeLabel,
-                    onTap: _pickTime,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _PickerField(
+                      icon: Icons.access_time,
+                      label: 'Horário',
+                      value: timeLabel,
+                      onTap: _pickTime,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'Intensidade',
-              style: TextStyle(fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                for (var i = 1; i <= 3; i++)
-                  _IntensityChip(
-                    label: ['Leve', 'Médio', 'Forte'][i - 1],
-                    selected: _intensity == i,
-                    onTap: () => setState(() => _intensity = i),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _notesCtrl,
-              maxLines: 2,
-              decoration: const InputDecoration(
-                labelText: 'Observações (opcional)',
+                ],
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Intensidade',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  for (var i = 1; i <= 3; i++)
+                    MoonChip(
+                      label: Text(['Leve', 'Médio', 'Forte'][i - 1]),
+                      isActive: _intensity == i,
+                      onTap: () => setState(() => _intensity = i),
+                      activeBackgroundColor: AppTheme.primary,
+                      activeColor: Colors.white,
+                      textColor: AppTheme.textPrimary,
+                      backgroundColor: AppTheme.accent.withValues(alpha: 0.3),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              MoonTextInput(
+                controller: _notesCtrl,
+                maxLines: 2,
                 hintText: 'Ex: chute forte na lateral direita',
               ),
-            ),
-            const SizedBox(height: 20),
-            FilledButton(
-              onPressed: _save,
-              child: const Text('Salvar'),
-            ),
-          ],
+              const SizedBox(height: 20),
+              MoonFilledButton(
+                onTap: _save,
+                isFullWidth: true,
+                label: const Text('Salvar'),
+              ),
+            ],
+          ),
         ),
       ),
+    ),
     );
   }
 
@@ -180,63 +188,40 @@ class _PickerField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-        decoration: BoxDecoration(
-          color: Colors.grey.shade50,
-          border: Border.all(color: Colors.grey.shade300),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, color: AppTheme.primary),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
-                  ),
-                  Text(
-                    value,
-                    style: const TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                ],
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+          decoration: BoxDecoration(
+            color: AppTheme.background,
+            border: Border.all(color: AppTheme.borderColor),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            children: [
+              Icon(icon, color: AppTheme.primary),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                    ),
+                    Text(
+                      value,
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-    );
-  }
-}
-
-class _IntensityChip extends StatelessWidget {
-  const _IntensityChip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return ChoiceChip(
-      label: Text(label),
-      selected: selected,
-      onSelected: (_) => onTap(),
-      selectedColor: AppTheme.primary,
-      labelStyle: TextStyle(
-        color: selected ? Colors.white : AppTheme.textPrimary,
-        fontWeight: FontWeight.w600,
       ),
     );
   }

@@ -26,6 +26,7 @@ void main() {
     repo = _MockMovementRepository();
     controller = StreamController<List<Movement>>.broadcast();
     when(() => repo.watch()).thenAnswer((_) => controller.stream);
+    when(() => repo.getAll()).thenReturn([]);
     when(() => repo.add(any())).thenAnswer((_) async {});
     when(() => repo.delete(any())).thenAnswer((_) async {});
   });

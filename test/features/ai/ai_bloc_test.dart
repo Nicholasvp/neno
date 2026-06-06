@@ -43,6 +43,7 @@ void main() {
           profile: any(named: 'profile'),
           recentMovements: any(named: 'recentMovements'),
           userMessage: any(named: 'userMessage'),
+          history: any(named: 'history'),
         )).thenAnswer((_) => Stream.value('Conselho teste'));
   });
 

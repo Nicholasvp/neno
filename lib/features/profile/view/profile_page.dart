@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:moon_design/moon_design.dart';
 
 import '../../../app/theme/app_theme.dart';
 import '../../../data/models/pregnancy_profile.dart';
@@ -18,10 +19,6 @@ class ProfilePage extends StatelessWidget {
       appBar: AppBar(title: const Text('Perfil')),
       body: BlocBuilder<ProfileBloc, ProfileState>(
         builder: (context, state) {
-          if (state.status == ProfileStatus.initial ||
-              state.status == ProfileStatus.loading) {
-            return const Center(child: CircularProgressIndicator());
-          }
           if (state.status == ProfileStatus.empty || state.profile == null) {
             return const _EmptyProfile();
           }
@@ -43,21 +40,21 @@ class _EmptyProfile extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.pregnant_woman, size: 80, color: AppTheme.accent),
+            Icon(Icons.pregnant_woman, size: 80, color: AppTheme.accent),
             const SizedBox(height: 16),
             Text(
               'Vamos configurar sua gestação',
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Informe a data prevista do parto (DPP) para acompanhar sua semana automaticamente.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: AppTheme.textSecondary),
+              style: const TextStyle(color: AppTheme.textSecondary),
             ),
             const SizedBox(height: 24),
-            FilledButton.icon(
-              onPressed: () => Navigator.of(context).push(
+            MoonFilledButton(
+              onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (_) => BlocProvider.value(
                     value: context.read<ProfileBloc>(),
@@ -65,7 +62,7 @@ class _EmptyProfile extends StatelessWidget {
                   ),
                 ),
               ),
-              icon: const Icon(Icons.add),
+              leading: const Icon(Icons.add),
               label: const Text('Cadastrar gestação'),
             ),
           ],
@@ -124,8 +121,8 @@ class _ProfileBody extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        FilledButton.tonalIcon(
-          onPressed: () => Navigator.of(context).push(
+        MoonFilledButton(
+          onTap: () => Navigator.of(context).push(
             MaterialPageRoute(
               builder: (_) => BlocProvider.value(
                 value: context.read<ProfileBloc>(),
@@ -133,13 +130,13 @@ class _ProfileBody extends StatelessWidget {
               ),
             ),
           ),
-          icon: const Icon(Icons.edit),
+          leading: const Icon(Icons.edit),
           label: const Text('Editar'),
         ),
         const SizedBox(height: 8),
-        OutlinedButton.icon(
-          onPressed: () => _confirmClear(context),
-          icon: const Icon(Icons.delete_outline, color: Colors.red),
+        MoonOutlinedButton(
+          onTap: () => _confirmClear(context),
+          leading: const Icon(Icons.delete_outline, color: Colors.red),
           label: const Text('Remover gestação', style: TextStyle(color: Colors.red)),
         ),
       ],
@@ -153,14 +150,16 @@ class _ProfileBody extends StatelessWidget {
         title: const Text('Remover gestação?'),
         content: const Text('Isso apagará os dados da sua gestação atual. Os movimentos registrados não serão afetados.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            onPressed: () {
+          MoonTextButton(
+            onTap: () => Navigator.pop(context),
+            label: const Text('Cancelar'),
+          ),
+          MoonFilledButton(
+            onTap: () {
               context.read<ProfileBloc>().add(const ProfileCleared());
               Navigator.pop(context);
             },
-            child: const Text('Remover'),
+            label: const Text('Remover'),
           ),
         ],
       ),
@@ -207,11 +206,11 @@ class _WeekCard extends StatelessWidget {
             const SizedBox(height: 16),
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: LinearProgressIndicator(
+              child: MoonLinearProgress(
                 value: profile.progress,
-                minHeight: 8,
+                color: Colors.white,
                 backgroundColor: Colors.white24,
-                valueColor: const AlwaysStoppedAnimation(Colors.white),
+                height: 8,
               ),
             ),
           ],

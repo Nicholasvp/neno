@@ -31,7 +31,6 @@ void main() {
     },
     act: (bloc) => bloc.add(const ProfileLoaded()),
     expect: () => [
-      isA<ProfileState>().having((s) => s.status, 'status', ProfileStatus.loading),
       isA<ProfileState>().having((s) => s.status, 'status', ProfileStatus.empty),
     ],
   );
@@ -46,7 +45,6 @@ void main() {
     },
     act: (bloc) => bloc.add(const ProfileLoaded()),
     expect: () => [
-      isA<ProfileState>().having((s) => s.status, 'status', ProfileStatus.loading),
       isA<ProfileState>().having((s) => s.status, 'status', ProfileStatus.loaded),
     ],
   );

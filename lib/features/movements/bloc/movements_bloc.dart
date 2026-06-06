@@ -24,8 +24,12 @@ class MovementsBloc extends Bloc<MovementsEvent, MovementsState> {
     MovementsSubscribed event,
     Emitter<MovementsState> emit,
   ) async {
-    emit(state.copyWith(status: MovementsStatus.loading));
     await _subscription?.cancel();
+    final current = _repository.getAll();
+    emit(state.copyWith(
+      status: MovementsStatus.loaded,
+      movements: current,
+    ));
     _subscription = _repository.watch().listen(
           (list) => add(MovementsReceived(list)),
         );

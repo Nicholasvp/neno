@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as dev;
 
 import '../datasources/ai_service.dart';
 import '../datasources/rule_based_advisor.dart';
@@ -14,10 +15,7 @@ abstract class AiRepository {
     required PregnancyProfile profile,
     required List<Movement> recentMovements,
     String? userMessage,
-  });
-  String askWithRules({
-    required PregnancyProfile profile,
-    required List<Movement> recentMovements,
+    List<AiMessage> history = const [],
   });
 }
 
@@ -46,27 +44,17 @@ class AiRepositoryImpl implements AiRepository {
     required PregnancyProfile profile,
     required List<Movement> recentMovements,
     String? userMessage,
+    List<AiMessage> history = const [],
   }) async* {
-    if (!_aiService.isLoaded) {
-      final advice = _advisor.getAdvice(
-        AdvisorContext(
-          profile: profile,
-          recentMovements: recentMovements,
-          movementsLast24h: _countLast24h(recentMovements),
-          averageDailyMovements: _averageDaily(recentMovements),
-        ),
-      );
-      if (userMessage != null && userMessage.trim().isNotEmpty) {
-        yield 'Sou uma assistente especializada em gestação e maternidade. $advice';
-      } else {
-        yield advice;
-      }
-      return;
-    }
+    dev.log(
+      'AiRepo: gerando resposta | isLoaded=${_aiService.isLoaded} '
+      '| userMessage=${userMessage != null && userMessage.trim().isNotEmpty}',
+    );
     final messages = _buildMessages(
       profile: profile,
       recentMovements: recentMovements,
       userMessage: userMessage,
+      history: history,
     );
     await for (final token in _aiService.generateStream(messages)) {
       yield token;
@@ -77,12 +65,22 @@ class AiRepositoryImpl implements AiRepository {
     required PregnancyProfile profile,
     required List<Movement> recentMovements,
     String? userMessage,
+    List<AiMessage> history = const [],
   }) {
     final last24h = _countLast24h(recentMovements);
     final avg = _averageDaily(recentMovements);
-    final movementsText = recentMovements.take(20).map((m) {
+    final movementsText = recentMovements.take(5).map((m) {
       return '- ${m.timestamp.toIso8601String()}';
     }).join('\n');
+
+    final insights = _advisor.extractInsights(
+      AdvisorContext(
+        profile: profile,
+        recentMovements: recentMovements,
+        movementsLast24h: last24h,
+        averageDailyMovements: avg,
+      ),
+    );
 
     final contextInfo = StringBuffer()
       ..writeln('Contexto da gestante:')
@@ -92,7 +90,15 @@ class AiRepositoryImpl implements AiRepository {
       ..writeln('- Movimentos registrados nas últimas 24h: $last24h')
       ..writeln('- Média diária recente: ${avg.toStringAsFixed(1)}')
       ..writeln('- Últimos movimentos:')
-      ..writeln(movementsText.isEmpty ? '- Nenhum registrado' : movementsText);
+      ..writeln(movementsText.isEmpty ? '- Nenhum registrado' : movementsText)
+      ..writeln('')
+      ..writeln('Insights calculados pelas regras (use como referência para personalizar):')
+      ..writeln('- Fase da gestação: ${insights.trimesterPhase}')
+      ..writeln('- Avaliação de movimentos: ${insights.movementAssessment}')
+      ..writeln('- Dica geral da semana: ${insights.generalTip}');
+    if (insights.lastMovementSummary != null) {
+      contextInfo.writeln('- Último movimento registrado: ${insights.lastMovementSummary}');
+    }
 
     final systemMessage = StringBuffer()
       ..writeln('Você é um assistente virtual EXCLUSIVO para gestação e maternidade.')
@@ -114,6 +120,11 @@ class AiRepositoryImpl implements AiRepository {
       AiMessage(role: 'system', content: systemMessage.toString()),
     ];
 
+    for (final turn in history) {
+      if (turn.content.trim().isEmpty) continue;
+      messages.add(AiMessage(role: turn.role, content: turn.content.trim()));
+    }
+
     if (userMessage != null && userMessage.trim().isNotEmpty) {
       messages.add(AiMessage(role: 'user', content: userMessage.trim()));
     } else {
@@ -124,21 +135,6 @@ class AiRepositoryImpl implements AiRepository {
     }
 
     return messages;
-  }
-
-  @override
-  String askWithRules({
-    required PregnancyProfile profile,
-    required List<Movement> recentMovements,
-  }) {
-    return _advisor.getAdvice(
-      AdvisorContext(
-        profile: profile,
-        recentMovements: recentMovements,
-        movementsLast24h: _countLast24h(recentMovements),
-        averageDailyMovements: _averageDaily(recentMovements),
-      ),
-    );
   }
 
   int _countLast24h(List<Movement> movements) {

@@ -20,6 +20,7 @@ void main() {
     repo = _MockMovementRepository();
     controller = StreamController<List<Movement>>.broadcast();
     when(() => repo.watch()).thenAnswer((_) => controller.stream);
+    when(() => repo.getAll()).thenReturn([]);
   });
 
   tearDown(() async {
@@ -53,10 +54,7 @@ void main() {
     build: () => AnalyticsBloc(repository: repo),
     act: (bloc) async {
       bloc.add(const AnalyticsSubscribed());
-      await Future<void>.delayed(const Duration(milliseconds: 10));
-      controller.add(const []);
     },
-    skip: 1,
     expect: () => [
       isA<AnalyticsState>().having((s) => s.status, 'status', AnalyticsStatus.empty),
     ],

@@ -15,10 +15,6 @@ class AnalyticsPage extends StatelessWidget {
       appBar: AppBar(title: const Text('Análises')),
       body: BlocBuilder<AnalyticsBloc, AnalyticsState>(
         builder: (context, state) {
-          if (state.status == AnalyticsStatus.loading ||
-              state.status == AnalyticsStatus.initial) {
-            return const Center(child: CircularProgressIndicator());
-          }
           if (state.status == AnalyticsStatus.empty) {
             return const _EmptyAnalytics();
           }
@@ -54,7 +50,7 @@ class _AnalyticsBody extends StatelessWidget {
                 title: 'Intervalo médio',
                 value: _formatInterval(state.averageIntervalMinutes),
                 icon: Icons.timer,
-                color: Colors.deepPurple,
+                color: AppTheme.borderColor,
               ),
             ),
             const SizedBox(width: 12),
@@ -63,7 +59,7 @@ class _AnalyticsBody extends StatelessWidget {
                 title: 'Sequência',
                 value: '${state.streakDays}d',
                 icon: Icons.local_fire_department,
-                color: Colors.orange,
+                color: AppTheme.primary,
               ),
             ),
           ],
@@ -197,7 +193,7 @@ class _PeakHours extends StatelessWidget {
                   backgroundColor: AppTheme.accent,
                   child: Text(
                     '${i + 1}',
-                    style: const TextStyle(color: AppTheme.primaryDark, fontWeight: FontWeight.bold, fontSize: 12),
+                    style: const TextStyle(color: AppTheme.textSecondary, fontWeight: FontWeight.bold, fontSize: 12),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -227,17 +223,17 @@ class _EmptyAnalytics extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.bar_chart, size: 80, color: AppTheme.accent),
+            Icon(Icons.bar_chart, size: 80, color: AppTheme.accent),
             const SizedBox(height: 16),
             Text(
               'Sem dados ainda',
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Comece a registrar movimentos para ver suas análises.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: AppTheme.textSecondary),
+              style: const TextStyle(color: AppTheme.textSecondary),
             ),
           ],
         ),

@@ -67,24 +67,24 @@ class _HomePageState extends State<HomePage> {
           selectedIndex: _index,
           onDestinationSelected: _onTabChange,
           indicatorColor: AppTheme.accent,
-          destinations: const [
+          destinations: [
             NavigationDestination(
-              icon: Icon(Icons.favorite_border),
+              icon: const Icon(Icons.favorite_border),
               selectedIcon: Icon(Icons.favorite, color: AppTheme.primary),
               label: 'Movimentos',
             ),
             NavigationDestination(
-              icon: Icon(Icons.bar_chart_outlined),
+              icon: const Icon(Icons.bar_chart_outlined),
               selectedIcon: Icon(Icons.bar_chart, color: AppTheme.primary),
               label: 'Análises',
             ),
             NavigationDestination(
-              icon: Icon(Icons.psychology_alt_outlined),
+              icon: const Icon(Icons.psychology_alt_outlined),
               selectedIcon: Icon(Icons.psychology_alt, color: AppTheme.primary),
               label: 'Conselhos',
             ),
             NavigationDestination(
-              icon: Icon(Icons.person_outline),
+              icon: const Icon(Icons.person_outline),
               selectedIcon: Icon(Icons.person, color: AppTheme.primary),
               label: 'Perfil',
             ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:moon_design/moon_design.dart';
 
 import '../../../app/theme/app_theme.dart';
 import '../../../data/models/movement.dart';
@@ -42,7 +43,7 @@ class MovementCard extends StatelessWidget {
                   color: AppTheme.accent,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.favorite,
                   color: AppTheme.primary,
                   size: 24,
@@ -81,20 +82,12 @@ class MovementCard extends StatelessWidget {
                 ),
               ),
               if (intensityLabel != null)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppTheme.accent.withValues(alpha: 0.4),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
+                MoonTag(
+                  label: Text(
                     intensityLabel,
-                    style: const TextStyle(
-                      color: AppTheme.primaryDark,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
                   ),
+                  backgroundColor: AppTheme.accent.withValues(alpha: 0.4),
                 ),
             ],
           ),

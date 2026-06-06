@@ -47,7 +47,7 @@ class Last7DaysChart extends StatelessWidget {
                   if (value % 1 != 0) return const SizedBox.shrink();
                   return Text(
                     value.toInt().toString(),
-                    style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                    style: const TextStyle(fontSize: 11, color: Color(0xFF6B6B6B)),
                   );
                 },
               ),
@@ -64,7 +64,7 @@ class Last7DaysChart extends StatelessWidget {
                     padding: const EdgeInsets.only(top: 6),
                     child: Text(
                       label,
-                      style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                      style: const TextStyle(fontSize: 11, color: Color(0xFF6B6B6B)),
                     ),
                   );
                 },
@@ -140,7 +140,7 @@ class HourDistributionChart extends StatelessWidget {
                   if (value.toInt() % 3 != 0) return const SizedBox.shrink();
                   return Text(
                     '${value.toInt()}h',
-                    style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary),
+                    style: const TextStyle(fontSize: 10, color: Color(0xFF6B6B6B)),
                   );
                 },
               ),
