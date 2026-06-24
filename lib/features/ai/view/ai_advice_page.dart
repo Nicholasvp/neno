@@ -7,6 +7,7 @@ import '../bloc/ai_bloc.dart';
 import '../bloc/ai_event.dart';
 import '../bloc/ai_state.dart';
 import '../widgets/chat_bubble.dart';
+import '../widgets/references_sheet.dart';
 
 class AiAdvicePage extends StatefulWidget {
   const AiAdvicePage({super.key});
@@ -62,6 +63,18 @@ class _AiAdvicePageState extends State<AiAdvicePage> {
       appBar: AppBar(
         title: const Text('Conselhos'),
         actions: [
+          IconButton(
+            tooltip: 'Fontes científicas',
+            icon: const Icon(Icons.menu_book_outlined),
+            onPressed: () => showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              ),
+              builder: (_) => const ReferencesSheet(),
+            ),
+          ),
           if (keyboardOpen)
             IconButton(
               tooltip: 'Minimizar teclado',
